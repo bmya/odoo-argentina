@@ -73,7 +73,10 @@ class AccountConfigSettings(models.TransientModel):
         data = padron.ObtenerTablaParametros(resource_type, separator)
         codes = []
         for line in data:
-            False, code, name, False = line.split(separator)
+            # None, code, name, None = line.split(separator)
+            split = line.split(separator)
+            code = split[1]
+            name = split[2]
             vals = {
                 'code': code,
                 'name': name,
