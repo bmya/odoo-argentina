@@ -9,14 +9,14 @@
     'summary': '',
     'depends': [
         'account_document',
-        'l10n_ar_partner',
-        'l10n_ar_bank',
+        'l10n_cl_partner',
+        'l10n_cl_bank',
         # agregamos esta dependencia ya que el fix que hace ese modulo
         # es fundamental para que el importa base de los impuestos se calcule
         # bien en los reembolsos.
         'account_fix',
         # para padron de afip
-        'l10n_ar_afipws',
+        #'l10n_ar_afipws',
         # para guardar el link entre facturas y NC
         # el modulo tiene errores en los test (probado solo con odoo y tmb)
         # 'account_invoice_refund_link',
@@ -25,7 +25,7 @@
         # 'account_invoice_tax_wizard',
     ],
     'external_dependencies': {
-        'python': ['pyafipws'],
+        #'python': ['pyafipws'],
     },
     'data': [
         'wizard/res_partner_update_from_padron_wizard_view.xml',
@@ -50,7 +50,7 @@
         # TODO analizar y migrar
         # 'data/account_financial_report_data.xml',
         # 'data/account_payment_term.xml',
-        'report/account_ar_vat_line_view.xml',
+        #'report/account_ar_vat_line_view.xml',
         'view/account_move_line_view.xml',
         'view/account_move_view.xml',
         'view/res_partner_view.xml',
@@ -72,13 +72,13 @@
         'view/afip_concept_view.xml',
         'view/afip_tax_view.xml',
         'res_config_view.xml',
-        'report/invoice_analysis.xml',
+        #'report/invoice_analysis.xml',
         'security/ir.model.access.csv',
         'security/security.xml',
     ],
     'demo': [
-        'demo/partner_demo.xml',
-        'demo/company_demo.xml',
+        #'demo/partner_demo.xml',
+        #'demo/company_demo.xml',
     ],
     'test': [
     ],
@@ -87,5 +87,5 @@
     'installable': True,
     'auto_install': False,
     'application': False,
-    'post_init_hook': 'post_init_hook',
+    #'post_init_hook': 'post_init_hook',
 }

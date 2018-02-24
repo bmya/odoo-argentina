@@ -182,7 +182,7 @@ class AccountArVatLine(models.Model):
         }
 
     # TODO usar en v10
-    # @api.model_cr
+    @api.model_cr
     def init(self, cr):
         tools.drop_view_if_exists(cr, self._table)
         env = api.Environment(cr, 1, {})

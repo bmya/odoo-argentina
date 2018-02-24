@@ -7,8 +7,9 @@ from odoo import fields, models, api
 from odoo.addons.account_document.models.res_company import ResCompany
 
 localizations = ResCompany._localization_selection
-new_selection = localizations.append(('argentina', 'Argentina'))
-ResCompany._localization_selection = new_selection
+
+#new_selection = localizations.append(('chile', 'Chile'))
+#ResCompany._localization_selection = new_selection
 
 
 class ResCompany(models.Model):

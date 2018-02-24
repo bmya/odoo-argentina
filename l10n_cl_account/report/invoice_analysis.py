@@ -3,7 +3,7 @@
 # For copyright and license notices, see __openerp__.py file in module root
 # directory
 ##############################################################################
-from odoo import fields, models
+from odoo import fields, models, api
 from odoo import tools
 
 
@@ -77,6 +77,7 @@ class AccountInvoiceLineReport(models.Model):
 
     _order = 'id'
 
+    @api.model_cr
     def init(self, cr):
 
         tools.drop_view_if_exists(cr, 'account_invoice_line_report')
