@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
-# For copyright and license notices, see __openerp__.py file in module root
+# For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from odoo import models, fields, api, _
+from odoo.exceptions import Warning
 # import time
 
 
@@ -45,20 +44,6 @@ class account_vat_ledger(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
     )
-    date_range_id = fields.Many2one(
-        'date.range',
-        'Date range',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
-    )
-
-    @api.onchange('date_range_id')
-    def onchange_date_range_id(self):
-        if self.date_range_id:
-            self.date_from = self.date_range_id.date_start
-            self.date_to = self.date_range_id.date_end
-        else:
-            self.date_from = self.date_to = None
     # period_id = fields.Many2one(
     #     'account.period', 'Period', required=True,
     #     readonly=True, states={'draft': [('readonly', False)]},)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    Copyright (C) 2015  ADHOC SA  (http://www.adhoc.com.ar)
@@ -19,41 +18,30 @@
 #
 ##############################################################################
 {
+    "name": "Integration between electronic invoice and account cancel",
+    'version': '11.0.1.0.0',
+    'category': 'Localization/Argentina',
+    'sequence': 14,
     'author': 'ADHOC SA,Odoo Community Association (OCA)',
     'website': 'www.adhoc.com.ar',
     'license': 'AGPL-3',
-    'category': 'Accounting & Finance',
-    'data': [
-        'reports/certificado_de_retencion_report.xml',
-        'views/account_payment_group_view.xml',
-        'views/res_company_view.xml',
-        'views/afip_tabla_ganancias_escala_view.xml',
-        'views/afip_tabla_ganancias_alicuotasymontos_view.xml',
-        'views/account_payment_view.xml',
-        'views/res_partner_view.xml',
-        'security/ir.model.access.csv',
-        'security/security.xml',
-        'data/tabla_ganancias_data.xml',
-    ],
-    'demo': [
-        'demo/ir_parameter.xml',
-        # 'demo/demo.xml',
-    ],
+    'summary': '',
+    'description': """
+Integration between electronic invoice and account cancel
+=========================================================
+""",
     'depends': [
-        'account_withholding_automatic',
-        'l10n_ar_account',
-        # para ganancias
-        # deberiamos requerir l10n_ar_aeroo_base pero preferimos no hacerlo
-        # para no sumar dependencinas. Se deberia requerir porque el reporte
-        # usa las lineas
-        # 'l10n_ar_aeroo_base',
-        'report_aeroo',
+        'l10n_ar_afipws_fe',
+        'account_cancel',
     ],
     'external_dependencies': {
-        'python': ['pyafipws'],
     },
-    'installable': True,
-    'name': 'Automatic Argentinian Withholdings on Payments',
-    'test': [],
-    'version': '9.0.1.9.0',
+    'data': [
+        'views/invoice_view.xml',
+    ],
+    'demo': [
+    ],
+    'installable': False,
+    'auto_install': True,
+    'application': False,
 }

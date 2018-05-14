@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
-# For copyright and license notices, see __openerp__.py file in module root
+# For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from openerp import models, fields, api, _
-from openerp.exceptions import ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 import base64
 import logging
 import re
@@ -205,9 +204,12 @@ class account_vat_ledger(models.Model):
                     False, 99) or not r.main_id_number)
             if partners:
                 raise ValidationError(_(
-                    "On purchase citi, partner document is mandatory and "
-                    "partner document type must be different from 99. "
-                    "Partners %s") % partners.ids)
+                    "On purchase citi, partner document type is mandatory "
+                    "and it must be different from 99. "
+                    "Partners: \r\n\r\n"
+                    "%s") % '\r\n'.join(
+                        ['[%i] %s' % (p.id, p.display_name)
+                            for p in partners]))
 
         for inv in invoices:
             # si no existe la factura en alicuotas es porque no tienen ninguna
@@ -529,7 +531,8 @@ class account_vat_ledger(models.Model):
 
             if not vat_taxes and inv.vat_tax_ids.filtered(
                     lambda r: r.tax_id.tax_group_id.afip_code):
-                lines.append(''.join(self.get_tax_row(inv, 0.0, 3, 0.0)))
+                lines.append(''.join(self.get_tax_row(
+                    inv, 0.0, 3, 0.0, impo=impo)))
 
             # we group by afip_code
             for afip_code in vat_taxes.mapped('tax_id.tax_group_id.afip_code'):

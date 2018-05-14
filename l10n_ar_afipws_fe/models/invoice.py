@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
-# For copyright and license notices, see __openerp__.py file in module root
+# For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
 from .pyi25 import PyI25
-from openerp import fields, models, api, _
-from openerp.exceptions import UserError
-from cStringIO import StringIO as StringIO
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
+from io import StringIO as StringIO
 import logging
 import sys
 import traceback
@@ -180,11 +179,22 @@ class AccountInvoice(models.Model):
         List related invoice information to fill CbtesAsoc.
         """
         self.ensure_one()
-        rel_invoices = self.search([
-            ('number', '=', self.origin),
-            ('state', 'not in',
-                ['draft', 'proforma', 'proforma2', 'cancel'])])
-        return rel_invoices
+        # for now we only get related document for debit and credit notes
+        # because, for eg, an invoice can not be related to an invocie and
+        # that happens if you choose the modify option of the credit note
+        # wizard. A mapping of which documents can be reported as related
+        # documents would be a better solution
+        if self.document_type_internal_type in ['debit_note', 'credit_note'] \
+                and self.origin:
+            return self.search([
+                ('commercial_partner_id', '=', self.commercial_partner_id.id),
+                ('company_id', '=', self.company_id.id),
+                ('document_number', '=', self.origin),
+                ('state', 'not in',
+                    ['draft', 'proforma', 'proforma2', 'cancel'])],
+                limit=1)
+        else:
+            return self.browse()
 
     @api.multi
     def invoice_validate(self):
@@ -335,7 +345,7 @@ print "Observaciones:", wscdc.Obs
             except SoapFault as fault:
                 msg = 'Falla SOAP %s: %s' % (
                     fault.faultcode, fault.faultstring)
-            except Exception, e:
+            except Exception as e:
                 msg = e
             except Exception:
                 if ws.Excepcion:
@@ -675,7 +685,7 @@ print "Observaciones:", wscdc.Obs
             except SoapFault as fault:
                 msg = 'Falla SOAP %s: %s' % (
                     fault.faultcode, fault.faultstring)
-            except Exception, e:
+            except Exception as e:
                 msg = e
             except Exception:
                 if ws.Excepcion:

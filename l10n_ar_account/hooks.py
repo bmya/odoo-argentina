@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 # Copyright <YEAR(S)> <AUTHOR(S)>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-from openerp.api import Environment
+from odoo.api import Environment
 try:
     from openupgradelib.openupgrade_tools import table_exists
     from openupgradelib.openupgrade_tools import column_exists
@@ -40,25 +39,15 @@ def document_types_not_updatable(cr, registry):
 def post_init_hook(cr, registry):
     """Loaded after installing the module.
     This module's DB modifications will be available.
-    :param openerp.sql_db.Cursor cr:
+    :param odoo.sql_db.Cursor cr:
         Database cursor.
-    :param openerp.modules.registry.RegistryManager registry:
+    :param odoo.modules.registry.Registry registry:
         Database registry, using v7 api.
     """
     _logger.info('Post init hook initialized')
 
     document_types_not_updatable(cr, registry)
     sync_padron_afip(cr, registry)
-
-    _logger.info('Getting currency rate for invoices')
-    ar_invoice_ids = registry['account.invoice'].search(
-        cr, 1, [('localization', '=', 'argentina')])
-    for invoice_id in ar_invoice_ids:
-        vals = registry['account.invoice'].get_localization_invoice_vals(
-            cr, 1, invoice_id)
-        registry['account.invoice'].write(
-            cr, 1, invoice_id, {
-                'currency_rate': vals.get('currency_rate')})
 
     # we don not force dependency on openupgradelib, only if available we try
     # o un de hook
@@ -123,8 +112,18 @@ def post_init_hook(cr, registry):
         merge_padron_into_account(cr)
         migrate_responsability_type(env)
         fix_invoice_without_date(env)
-    merge_refund_journals_to_normal(env)
-    map_tax_groups_to_taxes(cr, registry)
+        merge_refund_journals_to_normal(env)
+        map_tax_groups_to_taxes(cr, registry)
+
+        _logger.info('Getting currency rate for invoices')
+        ar_invoice_ids = registry['account.invoice'].search(
+            cr, 1, [('localization', '=', 'argentina')])
+        for invoice_id in ar_invoice_ids:
+            vals = registry['account.invoice'].get_localization_invoice_vals(
+                cr, 1, invoice_id)
+            registry['account.invoice'].write(
+                cr, 1, invoice_id, {
+                    'currency_rate': vals.get('currency_rate')})
 
 
 def fix_invoice_without_date(env):

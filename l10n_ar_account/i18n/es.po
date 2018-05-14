@@ -4,13 +4,14 @@
 # 
 # Translators:
 # Juan José Scarafía <scarafia.juanjose@gmail.com>, 2016
+# Iván Todorovich <ivan.todorovich@gmail.com>, 2018
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 9.0c\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-09-23 22:05+0000\n"
-"PO-Revision-Date: 2017-09-23 22:05+0000\n"
-"Last-Translator: Juan José Scarafía <scarafia.juanjose@gmail.com>, 2016\n"
+"POT-Creation-Date: 2018-02-26 23:05+0000\n"
+"PO-Revision-Date: 2018-02-26 23:05+0000\n"
+"Last-Translator: Iván Todorovich <ivan.todorovich@gmail.com>, 2018\n"
 "Language-Team: Spanish (https://www.transifex.com/adhoc/teams/46451/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -138,7 +139,7 @@ msgstr "Entrada de Cuenta"
 #. module: l10n_ar_account
 #: model:ir.model,name:l10n_ar_account.model_account_account_tag
 msgid "Account Tag"
-msgstr ""
+msgstr "Etiqueta de Cuenta"
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_date
@@ -410,7 +411,7 @@ msgid "Converts retreived text fields to Title Case."
 msgstr "Convierte el texto solicitado a formato de Título con Mayúscula"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:241
+#: code:addons/l10n_ar_account/models/account_invoice.py:248
 #, python-format
 msgid "Could not get invoice number and point of sale for invoice id %i"
 msgstr ""
@@ -467,6 +468,7 @@ msgstr "Taza de Cambio"
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_customer
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
 msgid "Customer"
 msgstr "Cliente"
 
@@ -870,7 +872,7 @@ msgid "IVA Ventas"
 msgstr "IVA Ventas"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:522
+#: code:addons/l10n_ar_account/models/account_invoice.py:529
 #, python-format
 msgid ""
 "If you have choose a 0, exempt or untaxed 'tax', or you must choose a fiscal position with afip code in %s.\n"
@@ -911,6 +913,7 @@ msgstr "Impuestos Internos"
 
 #. module: l10n_ar_account
 #: model:ir.model,name:l10n_ar_account.model_account_invoice
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
 msgid "Invoice"
 msgstr "Factura"
 
@@ -918,6 +921,15 @@ msgstr "Factura"
 #: model:ir.model,name:l10n_ar_account.model_account_invoice_line
 msgid "Invoice Line"
 msgstr "Línea de Factura"
+
+#. module: l10n_ar_account
+#: model:ir.actions.act_window,name:l10n_ar_account.action_account_invoice_line_report_all
+#: model:ir.ui.menu,name:l10n_ar_account.menu_action_account_invoice_line_report_all
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_pivot
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_tree
+msgid "Invoice Lines Analysis"
+msgstr ""
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_invoice_number
@@ -945,7 +957,7 @@ msgid "Invoice Total"
 msgstr "Total Factura"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:496
+#: code:addons/l10n_ar_account/models/account_invoice.py:503
 #, python-format
 msgid "Invoice with ID %s has some lines without vat Tax "
 msgstr "La factura con ID %s tiene algunas líneas sin IVA"
@@ -961,21 +973,9 @@ msgid "Invoices Analysis"
 msgstr "Análisis de facturas"
 
 #. module: l10n_ar_account
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_tree
-msgid "Invoices Line Analysis"
-msgstr "Análisis de líneas de facturas"
-
-#. module: l10n_ar_account
 #: model:ir.ui.view,arch_db:l10n_ar_account.product_template_form_view
 msgid "Invoices Line Report"
 msgstr "Informe de línea de facturas"
-
-#. module: l10n_ar_account
-#: model:ir.actions.act_window,name:l10n_ar_account.action_account_invoice_line_report_all
-#: model:ir.ui.menu,name:l10n_ar_account.menu_action_account_invoice_line_report_all
-msgid "Invoices Lines Analysis"
-msgstr "Análisis de Líneas de Factuar"
 
 #. module: l10n_ar_account
 #: model:ir.model,name:l10n_ar_account.model_account_invoice_line_report
@@ -1019,7 +1019,7 @@ msgid "Journal Type"
 msgstr "Tipo de diario"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/res_partner.py:217
+#: code:addons/l10n_ar_account/models/res_partner.py:245
 #, python-format
 msgid ""
 "Jurisdiction %s is considered the main jurisdiction because it is the state "
@@ -1032,7 +1032,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_account_tag_jurisdiction_code
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_tax_jurisdiction_code
 msgid "Jurisdiction code"
-msgstr ""
+msgstr "Código de Jurisdicción"
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_ar_vat_line_name
@@ -1084,6 +1084,16 @@ msgstr "Última actualización por"
 #: model:ir.model.fields,field_description:l10n_ar_account.field_res_partner_update_from_padron_wizard_write_date
 msgid "Last Updated on"
 msgstr "Última actualización en"
+
+#. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "Last month"
+msgstr "Último mes"
+
+#. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "Last year"
+msgstr ""
 
 #. module: l10n_ar_account
 #: model:product.product,name:l10n_ar_account.product_product_exento
@@ -1213,6 +1223,12 @@ msgstr "No se encontró ningún partner con CUIT para actualizar"
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_not_vat_tax_ids
 msgid "Not VAT Taxes"
 msgstr "Impuestos no IVA"
+
+#. module: l10n_ar_account
+#: code:addons/l10n_ar_account/models/res_partner.py:153
+#, python-format
+msgid "Not confirmed certificate found on database"
+msgstr "Certificado no confirmado encontrado en la base de datos"
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_number
@@ -1461,16 +1477,6 @@ msgid "Provincial Taxes"
 msgstr "Impuestos Provinciales"
 
 #. module: l10n_ar_account
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
-msgid "Purchase Invoice"
-msgstr "Factura de compra"
-
-#. module: l10n_ar_account
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
-msgid "Purchase Refund"
-msgstr "Reembolso de compra"
-
-#. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_quantity
 msgid "Quantity"
 msgstr "Cantidad"
@@ -1494,6 +1500,11 @@ msgstr "Referencia/Nombre de Fantasía"
 #: model:ir.ui.view,arch_db:l10n_ar_account.view_account_config_settings
 msgid "Refresh from Padron AFIP"
 msgstr "Actualizar desde Padron AFIP"
+
+#. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "Refund"
+msgstr "Devolución"
 
 #. module: l10n_ar_account
 #: code:addons/l10n_ar_account/res_config.py:69
@@ -1534,16 +1545,6 @@ msgstr "Retención IIBB"
 #: model:account.tax.group,name:l10n_ar_account.tax_group_retencion_iva
 msgid "Retención IVA"
 msgstr "Retención IVA"
-
-#. module: l10n_ar_account
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
-msgid "Sale Invoice"
-msgstr "Factura de venta"
-
-#. module: l10n_ar_account
-#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
-msgid "Sale Refund"
-msgstr "Reembolso de la venta"
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_user_id
@@ -1600,7 +1601,7 @@ msgid "Si"
 msgstr "Si"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:539
+#: code:addons/l10n_ar_account/models/account_invoice.py:546
 #, python-format
 msgid ""
 "Si hay líneas con IVA declarado 0, entonces debe elegir una posición fiscal con código de afip '%s'.\n"
@@ -1615,7 +1616,7 @@ msgid "Skip these partner"
 msgstr "Omitir esta empresa"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:470
+#: code:addons/l10n_ar_account/models/account_invoice.py:477
 #, python-format
 msgid ""
 "Some Invoice Tax Lines don't have a tax_id asociated, please correct them or"
@@ -1646,7 +1647,7 @@ msgid "Status"
 msgstr "Estado"
 
 #. module: l10n_ar_account
-#: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_price_subtotal_4185
+#: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_price_subtotal_4189
 msgid "Subtotal"
 msgstr "Subtotal"
 
@@ -1715,7 +1716,7 @@ msgid "Templates for Taxes"
 msgstr "Plantilla de impuestos"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:461
+#: code:addons/l10n_ar_account/models/account_invoice.py:468
 #, python-format
 msgid "The following invoices has a partner without AFIP responsability: %s"
 msgstr ""
@@ -1741,6 +1742,22 @@ msgstr "Este Mes"
 #: model:ir.ui.view,arch_db:l10n_ar_account.view_account_ar_vat_line_search
 msgid "This Year"
 msgstr "Este Año"
+
+#. module: l10n_ar_account
+#: code:addons/l10n_ar_account/models/res_partner.py:161
+#, python-format
+msgid "This cuit %s of the partner %s not exists in afip"
+msgstr "El CUIT %s del partner %s no existe en AFIP"
+
+#. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "This month"
+msgstr "Este mes"
+
+#. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "This year"
+msgstr ""
 
 #. module: l10n_ar_account
 #: model:ir.model.fields,field_description:l10n_ar_account.field_res_partner_update_from_padron_wizard_title_case
@@ -1778,7 +1795,7 @@ msgid "Type must be \"base\" or \"tax\""
 msgstr "El tipo debe ser \"base\" o \"impuesto\""
 
 #. module: l10n_ar_account
-#: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_price_unit_4184
+#: model:ir.model.fields,field_description:l10n_ar_account.field_account_invoice_line_report_price_unit_4188
 msgid "Unit Price"
 msgstr "Precio unitario"
 
@@ -1877,6 +1894,11 @@ msgid "Vat tax id"
 msgstr "id de IVA"
 
 #. module: l10n_ar_account
+#: model:ir.ui.view,arch_db:l10n_ar_account.view_account_invoice_line_report_search
+msgid "Vendor"
+msgstr "Proveedor"
+
+#. module: l10n_ar_account
 #: selection:account.ar.vat.line,comprobante:0
 msgid "Vendor Bill"
 msgstr "Factura del proveedor"
@@ -1902,7 +1924,7 @@ msgid "Wizard"
 msgstr "Asistente"
 
 #. module: l10n_ar_account
-#: code:addons/l10n_ar_account/models/account_invoice.py:485
+#: code:addons/l10n_ar_account/models/account_invoice.py:492
 #, python-format
 msgid ""
 "You are using argentinian localization and there are some tax groups that "

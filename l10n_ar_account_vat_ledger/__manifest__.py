@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Argentinian VAT Ledger Management",
-    'version': '9.0.1.5.0',
+    'version': '9.0.1.7.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
@@ -12,7 +11,7 @@
         "report_aeroo",
         "l10n_ar_account",
         "report_custom_filename",
-        "date_range",
+        # "date_range",
         # "account_fiscal_year",
     ],
     'external_dependencies': {
@@ -25,11 +24,9 @@
     ],
     'demo': [
     ],
-    'test': [
-    ],
     'images': [
     ],
-    "installable": True,
+    'installable': False,
     'auto_install': True,
     'application': False,
 }

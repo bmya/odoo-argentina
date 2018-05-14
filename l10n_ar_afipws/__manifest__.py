@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Modulo Base para los Web Services de AFIP',
-    'version': '9.0.1.3.0',
+    'version': '11.0.1.0.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA, Moldeo Interactive,Odoo Community Association (OCA)',
@@ -12,7 +11,7 @@
         'l10n_ar_partner',
     ],
     'external_dependencies': {
-        'python': ['suds', 'M2Crypto', 'pyafipws']
+        'python': ['pyafipws', 'OpenSSL']
     },
     'data': [
         'wizard/upload_certificate_view.xml',
@@ -29,11 +28,9 @@
         'demo/certificate_demo.xml',
         'demo/parameter_demo.xml',
     ],
-    'test': [
-    ],
     'images': [
     ],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'application': False,
 }

@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-from openerp import models, fields, api, _
-from openerp.exceptions import UserError
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class ResPartner(models.Model):
@@ -42,8 +41,8 @@ class ResPartner(models.Model):
     def cuit_required(self):
         self.ensure_one()
         if not self.cuit:
-            raise UserError(_('No CUIT cofigured for partner %s') % (
-                self.name))
+            raise UserError(_('No CUIT configured for partner [%i] %s') % (
+                self.id, self.name))
         return self.cuit
 
     @api.multi
@@ -132,7 +131,9 @@ class ResPartner(models.Model):
         """
         if not args:
             args = []
-        if name:
+        # solo para estos operadores para no romper cuando se usa, por ej,
+        # no contiene algo del nombre
+        if name and operator in ('ilike', 'like', '=', '=like', '=ilike'):
             recs = self.search(
                 [('id_numbers', operator, name)] + args, limit=limit)
             if recs:

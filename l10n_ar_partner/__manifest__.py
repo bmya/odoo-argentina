@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'author': "Moldeo Interactive,ADHOC SA,Odoo Community Association (OCA)",
     'category': 'Localization/Argentina',
@@ -10,7 +9,7 @@
         # for the sales config
         'base_setup',
     ],
-    'installable': True,
+    'installable': False,
     'license': 'AGPL-3',
     'name': 'Títulos de Personería y Tipos de documentos Arentinos',
     'data': [
@@ -26,7 +25,7 @@
     'demo': [
         'demo/partner_demo.xml',
     ],
-    'version': '9.0.1.2.0',
+    'version': '9.0.1.3.0',
     'post_init_hook': 'post_init_hook',
     'pre_init_hook': 'pre_init_hook',
 }

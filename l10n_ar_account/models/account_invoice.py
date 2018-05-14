@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
-# For copyright and license notices, see __openerp__.py file in module root
+# For copyright and license notices, see __manifest__.py file in module root
 # directory
 ##############################################################################
-from openerp import models, fields, api, _
-from openerp.exceptions import ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 from dateutil.relativedelta import relativedelta
 import re
 import logging
@@ -13,6 +12,13 @@ _logger = logging.getLogger(__name__)
 
 class AccountInvoice(models.Model):
     _inherit = "account.invoice"
+
+    afip_invoice_concepts = [
+        ('1', 'Producto / Exportación definitiva de bienes'),
+        ('2', 'Servicios'),
+        ('3', 'Productos y Servicios'),
+        ('4', '4-Otros (exportación)'),
+    ]
 
     main_id_number = fields.Char(
         related='commercial_partner_id.main_id_number',
@@ -141,14 +147,24 @@ class AccountInvoice(models.Model):
     # TODO mejorar, este concepto deberia quedar fijo y no poder modificarse
     # una vez validada, cosa que pasaria por ej si cambias el producto
     afip_concept = fields.Selection(
-        compute='_get_concept',
+        compute='_compute_concept',
+        inverse='_inverse_concept',
         # store=True,
-        selection=[('1', 'Producto / Exportación definitiva de bienes'),
-                   ('2', 'Servicios'),
-                   ('3', 'Productos y Servicios'),
-                   ('4', '4-Otros (exportación)'),
-                   ],
+        selection=afip_invoice_concepts,
         string="AFIP concept",
+        help="Se sugiere un concepto en función a la configuración de los "
+        "productos (tipo servicio, consumible o almacenable) pero se puede "
+        "cambiar este valor si lo requiere.",
+        readonly=True,
+        states={'draft': [('readonly', False)]},
+    )
+    # la idea es incorporar la posibilidad de forzar otro concepto distinto
+    # al sugerido, para no complicarla y ser compatible hacia atras de manera
+    # simple, agregamos este otro campo
+    force_afip_concept = fields.Selection(
+        selection=afip_invoice_concepts,
+        string="AFIP concept",
+        readonly=True,
     )
     afip_service_start = fields.Date(
         string='Service Start Date',
@@ -232,7 +248,11 @@ class AccountInvoice(models.Model):
                 if rec.document_type_id.code in ['33', '99', '331', '332']:
                     point_of_sale = '0'
                     # leave only numbers and convert to integer
-                    invoice_number = str_number
+                    # otherwise use date as a number
+                    if re.search(r'\d', str_number):
+                        invoice_number = str_number
+                    else:
+                        invoice_number = rec.date_invoice
                 # despachos de importacion
                 elif rec.document_type_id.code == '66':
                     point_of_sale = '0'
@@ -247,43 +267,68 @@ class AccountInvoice(models.Model):
                 else:
                     raise ValidationError(_(
                         'Could not get invoice number and point of sale for '
-                        'invoice id %i') % (rec.id))
+                        'Invoice [%i] %s') % (rec.id, rec.display_name))
                 rec.invoice_number = int(
                     re.sub("[^0-9]", "", invoice_number))
                 rec.point_of_sale_number = int(
                     re.sub("[^0-9]", "", point_of_sale))
 
-    @api.one
+    @api.multi
+    def _inverse_concept(self):
+        for rec in self:
+            if rec._get_concept() == rec.afip_concept:
+                rec.force_afip_concept = False
+            else:
+                rec.force_afip_concept = rec.afip_concept
+
+    @api.multi
+    def _get_concept(self):
+        """
+        Metodo para obtener el concepto en funcion a los productos de una
+        factura, luego es utilizado por los metodos inverse y compute del campo
+        afip_concept
+        """
+        self.ensure_one()
+        invoice_lines = self.invoice_line_ids
+        product_types = set([
+            x.product_id.type for x in invoice_lines
+            if x.product_id])
+        consumible = set(['consu', 'product'])
+        service = set(['service'])
+        mixed = set(['consu', 'service', 'product'])
+        # default value "product"
+        afip_concept = '1'
+        if product_types.issubset(mixed):
+            afip_concept = '3'
+        if product_types.issubset(service):
+            afip_concept = '2'
+        if product_types.issubset(consumible):
+            afip_concept = '1'
+        if self.document_type_id.code in ['19', '20', '21']:
+            # TODO verificar esto, como par expo no existe 3 y
+            # existe 4 (otros), considermaos que un mixto seria
+            # el otros
+            if afip_concept == '3':
+                afip_concept = '4'
+        return afip_concept
+
+    @api.multi
     @api.depends(
         'invoice_line_ids',
         'invoice_line_ids.product_id',
         'invoice_line_ids.product_id.type',
         'localization',
+        'force_afip_concept',
     )
-    def _get_concept(self):
-        afip_concept = False
-        if self.point_of_sale_type in ['online', 'electronic']:
-            # exportaciones
-            invoice_lines = self.invoice_line_ids
-            product_types = set(
-                [x.product_id.type for x in invoice_lines if x.product_id])
-            consumible = set(['consu', 'product'])
-            service = set(['service'])
-            mixed = set(['consu', 'service', 'product'])
-            # default value "product"
-            afip_concept = '1'
-            if product_types.issubset(mixed):
-                afip_concept = '3'
-            if product_types.issubset(service):
-                afip_concept = '2'
-            if product_types.issubset(consumible):
-                afip_concept = '1'
-            if self.document_type_id.code in ['19', '20', '21']:
-                # TODO verificar esto, como par expo no existe 3 y existe 4
-                # (otros), considermaos que un mixto seria el otros
-                if afip_concept == '3':
-                    afip_concept = '4'
-        self.afip_concept = afip_concept
+    def _compute_concept(self):
+        for rec in self:
+            afip_concept = False
+            if rec.point_of_sale_type in ['online', 'electronic']:
+                if rec.force_afip_concept:
+                    afip_concept = rec.force_afip_concept
+                else:
+                    afip_concept = rec._get_concept()
+            rec.afip_concept = afip_concept
 
     # TODO borrar o implementar. Al final usamos el currency rate que
     # almacenamos porque es muy inexacto calcularlo ya que se pierde
@@ -357,26 +402,27 @@ class AccountInvoice(models.Model):
 
                 # if invoice_type is refund, only credit notes
                 if invoice_type in ['out_refund', 'in_refund']:
-                    domain += [
+                    domain = [
                         ('document_type_id.internal_type',
                             # '=', 'credit_note')]
                             # TODO, check if we need to add tickets and others
                             # also
-                            'in', ['credit_note', 'in_document'])]
+                            'in', ['credit_note', 'in_document'])] + domain
                 # else, none credit notes
                 else:
-                    domain += [
+                    # usamos not in porque != no funciona bien, no muestra los
+                    # que tienen internal type = False
+                    domain = [
                         ('document_type_id.internal_type',
-                            '!=', 'credit_note')]
+                            'not in', ['credit_note'])] + domain
 
                 # If internal_type in context we try to serch specific document
                 # for eg used on debit notes
                 internal_type = self._context.get('internal_type', False)
                 if internal_type:
                     journal_document_type = journal_document_type.search(
-                        domain + [
-                            ('document_type_id.internal_type',
-                                '=', internal_type)], limit=1)
+                        [('document_type_id.internal_type',
+                            '=', internal_type)] + domain, limit=1)
                 # For domain, we search all documents
                 journal_document_types = journal_document_types.search(domain)
 
@@ -467,7 +513,10 @@ class AccountInvoice(models.Model):
         if without_responsability:
             raise ValidationError(_(
                 'The following invoices has a partner without AFIP '
-                'responsability: %s' % without_responsability.ids))
+                'responsability:\r\n\r\n'
+                '%s') % ('\r\n'.join(
+                    ['[%i] %s' % (i.id, i.display_name)
+                        for i in without_responsability])))
 
         # we check all invoice tax lines has tax_id related
         # we exclude exempt vats and untaxed (no gravados)
@@ -514,6 +563,44 @@ class AccountInvoice(models.Model):
         #             "Invoice with ID %i has some lines without vat Tax ") % (
         #                 invoice.id))
 
+        # verificamos facturas de compra que deben reportar cuit y no lo tienen
+        # configurado
+        without_cuit = argentinian_invoices.filtered(
+            lambda x: x.type in ['in_invoice', 'in_refund'] and
+            x.document_type_id.purchase_cuit_required and
+            not x.commercial_partner_id.cuit)
+        if without_cuit:
+            raise ValidationError(_(
+                'Las siguientes partners no tienen configurado CUIT: %s') % (
+                    ', '.join(
+                        without_cuit.mapped('commercial_partner_id.name'))
+                ))
+
+        # facturas que no debería tener ningún iva y tienen
+        not_zero_alicuot = argentinian_invoices.filtered(
+            lambda x: x.type in ['in_invoice', 'in_refund'] and
+            x.document_type_id.purchase_alicuots == 'zero' and
+            any([t.tax_id.tax_group_id.afip_code != 0 for t in x.vat_tax_ids]))
+        if not_zero_alicuot:
+            raise ValidationError(_(
+                'Las siguientes facturas tienen configurados IVA incorrecto. '
+                'Debe utilizar IVA no corresponde.\n*Facturas: %s') % (
+                    ', '.join(not_zero_alicuot.mapped('display_name'))
+                ))
+
+        # facturas que debería tener iva y tienen no corresponde
+        zero_alicuot = argentinian_invoices.filtered(
+            lambda x: x.type in ['in_invoice', 'in_refund'] and
+            x.document_type_id.purchase_alicuots == 'not_zero' and
+            any([t.tax_id.tax_group_id.afip_code == 0 for t in x.vat_tax_ids]))
+        if zero_alicuot:
+            raise ValidationError(_(
+                'Las siguientes facturas tienen IVA no corresponde pero debe '
+                'seleccionar una alícuota correcta (No gravado, Exento, Cero, '
+                '10,5, etc).\n*Facturas: %s') % (
+                    ', '.join(zero_alicuot.mapped('display_name'))
+                ))
+
         # Check except vat invoice
         afip_exempt_codes = ['Z', 'X', 'E', 'N', 'C']
         for invoice in argentinian_invoices:
@@ -526,8 +613,11 @@ class AccountInvoice(models.Model):
                 raise ValidationError(_(
                     "If you have choose a 0, exempt or untaxed 'tax', or "
                     "you must choose a fiscal position with afip code in %s.\n"
-                    "* Invoice id %i" % (afip_exempt_codes, invoice.id))
-                )
+                    "* Invoice [%i] %s") % (
+                        afip_exempt_codes,
+                        invoice.id,
+                        invoice.display_name))
+
             # esto es, por eje, si hay un producto con 100% de descuento para
             # única alicuota, entonces el impuesto liquidado da cero y se
             # obliga reportar con alicuota 0, entonces se exige tmb cod de op.
@@ -543,8 +633,10 @@ class AccountInvoice(models.Model):
                 raise ValidationError(_(
                     "Si hay líneas con IVA declarado 0, entonces debe elegir "
                     "una posición fiscal con código de afip '%s'.\n"
-                    "* Invoice id %i" % (afip_exempt_codes, invoice.id))
-                )
+                    "* Invoice [%i] %s") % (
+                        afip_exempt_codes,
+                        invoice.id,
+                        invoice.display_name))
 
     # TODO sacamos esto porque no era muy lindo y daba algunos errores con
     # el account_fix, hicimos que los datos demo hagan el compute tax

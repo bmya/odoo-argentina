@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Argentinian Localization',
     'version': '9.0.1.0.0',
@@ -21,9 +20,7 @@
         'demo/res_currency_demo.xml',
         'demo/res_company_demo.xml',
     ],
-    'test': [
-    ],
-    'installable': True,
+    'installable': False,
     'auto_install': True,
     'application': True,
 }

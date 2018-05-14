@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Módulo base de Contabilidad Argentina",
-    'version': '9.0.1.24.0',
+    'version': '11.0.1.0.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
@@ -80,11 +79,9 @@
         'demo/partner_demo.xml',
         'demo/company_demo.xml',
     ],
-    'test': [
-    ],
     'images': [
     ],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'application': False,
     'post_init_hook': 'post_init_hook',

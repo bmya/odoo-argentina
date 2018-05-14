@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-from openerp import models, api, fields
-# from openerp.exceptions import UserError
+from odoo import models, api, fields
+# from odoo.exceptions import UserError
 
 
 class AccountDocmentType(models.Model):
@@ -9,6 +8,14 @@ class AccountDocmentType(models.Model):
     document_letter_id = fields.Many2one(
         'account.document.letter',
         'Document Letter'
+    )
+    purchase_cuit_required = fields.Boolean(
+        help='Verdadero si la declaración del CITI compras requiere informar '
+        'CUIT'
+    )
+    purchase_alicuots = fields.Selection(
+        [('not_zero', 'No Cero'), ('zero', 'Cero')],
+        help='Cero o No cero según lo requiere la declaración del CITI compras'
     )
 
     @api.multi
@@ -31,7 +38,11 @@ class AccountDocmentType(models.Model):
         self.ensure_one()
         if self.localization == 'argentina':
             if self.document_letter_id.taxes_included:
-                return self.env['account.tax'].search([])
+                # solo incluir el IVA, el resto se debe discriminar
+                # return self.env['account.tax'].search([])
+                return self.env['account.tax'].search(
+                    [('tax_group_id.tax', '=', 'vat'),
+                     ('tax_group_id.type', '=', 'tax')])
             # included_tax_groups = (
             #     self.document_letter_id.included_tax_group_ids)
             # if included_tax_groups:
