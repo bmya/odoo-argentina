@@ -24,7 +24,7 @@ class AccountTaxGroup(models.Model):
     _inherit = 'account.tax.group'
 
     afip_code = fields.Integer(
-        'AFIP Code'
+        'AFIP Code',
     )
     type = fields.Selection([
         ('tax', 'TAX'),
@@ -32,12 +32,15 @@ class AccountTaxGroup(models.Model):
         ('withholding', 'Withholding'),
         ('other', 'Other'),
         # ('view', 'View'),
-    ])
+    ],
+        index=True,
+    )
     tax = fields.Selection([
         ('vat', 'VAT'),
         ('profits', 'Profits'),
         ('gross_income', 'Gross Income'),
         ('other', 'Other')],
+        index=True,
     )
     application = fields.Selection([
         ('national_taxes', 'National Taxes'),
@@ -46,26 +49,28 @@ class AccountTaxGroup(models.Model):
         ('internal_taxes', 'Internal Taxes'),
         ('others', 'Others')],
         help='Other Taxes According AFIP',
+        index=True,
     )
     application_code = fields.Char(
         'Application Code',
-        compute='get_application_code',
+        compute='_compute_application_code',
     )
 
-    @api.one
+    @api.multi
     @api.depends('application')
-    def get_application_code(self):
-        if self.application == 'national_taxes':
-            application_code = '01'
-        elif self.application == 'provincial_taxes':
-            application_code = '02'
-        elif self.application == 'municipal_taxes':
-            application_code = '03'
-        elif self.application == 'internal_taxes':
-            application_code = '04'
-        else:
-            application_code = '99'
-        self.application_code = application_code
+    def _compute_application_code(self):
+        for rec in self:
+            if rec.application == 'national_taxes':
+                application_code = '01'
+            elif rec.application == 'provincial_taxes':
+                application_code = '02'
+            elif rec.application == 'municipal_taxes':
+                application_code = '03'
+            elif rec.application == 'internal_taxes':
+                application_code = '04'
+            else:
+                application_code = '99'
+            rec.application_code = application_code
 
 
 class AccountFiscalPositionTemplate(models.Model):
@@ -109,7 +114,7 @@ class AccountFiscalPosition(models.Model):
     afip_code = fields.Char(
         'AFIP Code',
         help='For eg. This code will be used on electronic invoice and citi '
-        'reports'
+        'reports',
     )
     # TODO tal vez podriamos usar funcionalidad nativa con "vat subjected"
     afip_responsability_type_ids = fields.Many2many(

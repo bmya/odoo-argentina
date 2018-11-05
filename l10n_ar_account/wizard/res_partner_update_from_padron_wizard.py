@@ -5,7 +5,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class res_partner_update_from_padron_field(models.TransientModel):
+class ResPartnerUpdateFromPadronField(models.TransientModel):
     _name = 'res.partner.update.from.padron.field'
 
     wizard_id = fields.Many2one(
@@ -21,7 +21,7 @@ class res_partner_update_from_padron_field(models.TransientModel):
     )
 
 
-class res_partner_update_from_padron_wizard(models.TransientModel):
+class ResPartnerUpdateFromPadronWizard(models.TransientModel):
     _name = 'res.partner.update.from.padron.wizard'
 
     @api.model
@@ -38,7 +38,7 @@ class res_partner_update_from_padron_wizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
-        res = super(res_partner_update_from_padron_wizard, self).default_get(
+        res = super(ResPartnerUpdateFromPadronWizard, self).default_get(
             fields)
         context = self._context
         if (
@@ -82,8 +82,8 @@ class res_partner_update_from_padron_wizard(models.TransientModel):
 
     @api.model
     def _get_default_title_case(self):
-        parameter = self.env[
-            'ir.config_parameter'].get_param('use_title_case_on_padron_afip')
+        parameter = self.env['ir.config_parameter'].sudo().get_param(
+                'use_title_case_on_padron_afip')
         if parameter == 'False' or parameter == '0':
             return False
         return True
@@ -148,7 +148,7 @@ class res_partner_update_from_padron_wizard(models.TransientModel):
             partner_vals = partner.get_data_from_padron_afip()
             lines = []
             # partner_vals.pop('constancia')
-            for key, new_value in partner_vals.iteritems():
+            for key, new_value in partner_vals.items():
                 old_value = partner[key]
                 if new_value == '':
                     new_value = False

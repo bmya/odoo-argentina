@@ -1,6 +1,6 @@
 {
     "name": "Módulo base de Contabilidad Argentina",
-    'version': '11.0.1.0.0',
+    'version': '11.0.1.1.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
@@ -24,10 +24,11 @@
         # 'account_invoice_tax_wizard',
     ],
     'external_dependencies': {
-        'python': ['pyafipws'],
+        'python': ['pyafipws', 'pysimplesoap.client'],
     },
     'data': [
         'wizard/res_partner_update_from_padron_wizard_view.xml',
+        'wizard/res_config_settings_view.xml',
         'data/menuitem.xml',
         'data/product_data.xml',
         'data/base_validator_data.xml',
@@ -70,7 +71,6 @@
         'view/afip_activity_view.xml',
         'view/afip_concept_view.xml',
         'view/afip_tax_view.xml',
-        'res_config_view.xml',
         'report/invoice_analysis.xml',
         'security/ir.model.access.csv',
         'security/security.xml',
@@ -81,7 +81,7 @@
     ],
     'images': [
     ],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'application': False,
     'post_init_hook': 'post_init_hook',

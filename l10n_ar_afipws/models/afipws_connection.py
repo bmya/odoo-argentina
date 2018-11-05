@@ -20,6 +20,8 @@ class AfipwsConnection(models.Model):
         'res.company',
         'Company',
         required=True,
+        index=True,
+        auto_join=True,
     )
     uniqueid = fields.Char(
         'Unique ID',
@@ -40,11 +42,6 @@ class AfipwsConnection(models.Model):
     expirationtime = fields.Datetime(
         'Expiration Time',
         readonly=True
-    )
-    batch_sequence_id = fields.Many2one(
-        'ir.sequence',
-        'Batch Sequence',
-        readonly=False,
     )
     afip_login_url = fields.Char(
         'AFIP Login URL',
@@ -69,15 +66,16 @@ class AfipwsConnection(models.Model):
         required=True,
     )
 
-    @api.one
+    @api.multi
     @api.depends('type', 'afip_ws')
     def get_urls(self):
-        self.afip_login_url = self.get_afip_login_url(self.type)
+        for rec in self:
+            rec.afip_login_url = rec.get_afip_login_url(rec.type)
 
-        afip_ws_url = self.get_afip_ws_url(self.afip_ws, self.type)
-        if self.afip_ws and not afip_ws_url:
-            raise UserError(_('Webservice %s not supported') % self.afip_ws)
-        self.afip_ws_url = afip_ws_url
+            afip_ws_url = rec.get_afip_ws_url(rec.afip_ws, rec.type)
+            if rec.afip_ws and not afip_ws_url:
+                raise UserError(_('Webservice %s not supported') % rec.afip_ws)
+            rec.afip_ws_url = afip_ws_url
 
     @api.model
     def get_afip_login_url(self, environment_type):
@@ -106,6 +104,15 @@ class AfipwsConnection(models.Model):
                 afip_ws_url = (
                     "https://awshomo.afip.gov.ar/sr-padron/webservices/"
                     "personaServiceA4?wsdl")
+        elif afip_ws == 'ws_sr_padron_a5':
+            if environment_type == 'production':
+                afip_ws_url = (
+                    "https://aws.afip.gov.ar/sr-padron/webservices/"
+                    "personaServiceA5?wsdl")
+            else:
+                afip_ws_url = (
+                    "https://awshomo.afip.gov.ar/sr-padron/webservices/"
+                    "personaServiceA5?wsdl")
         return afip_ws_url
 
     @api.multi
@@ -133,7 +140,7 @@ class AfipwsConnection(models.Model):
         # https://groups.google.com/d/msg/pyafipws/Xr08e4ZuMmQ/6iDzXwdJAwAJ
         # TODO mejorar ya que probablemente no ande en test pero el tema es
         # que en esta parte no tenemos data del env_type
-        if self.afip_ws == 'ws_sr_padron_a4':
+        if self.afip_ws in ['ws_sr_padron_a4', 'ws_sr_padron_a5']:
             ws.HOMO = False
 
         if not ws:
@@ -141,7 +148,7 @@ class AfipwsConnection(models.Model):
                 self.afip_ws)))
         # TODO implementar cache y proxy
         # create the proxy and get the configuration system parameters:
-        # cfg = self.pool.get('ir.config_parameter')
+        # cfg = self.pool.get('ir.config_parameter').sudo()
         # cache = cfg.get_param(cr, uid, 'pyafipws.cache', context=context)
         # proxy = cfg.get_param(cr, uid, 'pyafipws.proxy', context=context)
 
@@ -151,8 +158,8 @@ class AfipwsConnection(models.Model):
         ws.Conectar("", wsdl or "", "")
         cuit = self.company_id.cuit_required()
         ws.Cuit = cuit
-        ws.Token = self.token.encode('ascii')
-        ws.Sign = self.sign.encode('ascii')
+        ws.Token = self.token
+        ws.Sign = self.sign
         # TODO till this this PR is accepted
         ws.Obs = ''
         ws.Errores = []
@@ -173,4 +180,7 @@ class AfipwsConnection(models.Model):
         if afip_ws == 'ws_sr_padron_a4':
             from pyafipws.ws_sr_padron import WSSrPadronA4
             ws = WSSrPadronA4()
+        elif afip_ws == 'ws_sr_padron_a5':
+            from pyafipws.ws_sr_padron import WSSrPadronA5
+            ws = WSSrPadronA5()
         return ws

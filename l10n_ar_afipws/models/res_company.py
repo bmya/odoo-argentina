@@ -23,11 +23,13 @@ class ResCompany(models.Model):
         'afipws.certificate_alias',
         'company_id',
         'Aliases',
+        auto_join=True,
     )
     connection_ids = fields.One2many(
         'afipws.connection',
         'company_id',
         'Connections',
+        auto_join=True,
     )
 
     @api.model
@@ -43,7 +45,7 @@ class ResCompany(models.Model):
         * other or no parameter -->  production
         """
         parameter_env_type = self.env[
-            'ir.config_parameter'].get_param('afip.ws.env.type')
+            'ir.config_parameter'].sudo().get_param('afip.ws.env.type')
         if parameter_env_type == 'production':
             environment_type = 'production'
         elif parameter_env_type == 'homologation':
@@ -175,7 +177,7 @@ class ResCompany(models.Model):
 
         # make md5 hash of the parameter for caching...
         fn = "%s.xml" % hashlib.md5(
-            service + certificate + private_key).hexdigest()
+            (service + certificate + private_key).encode('utf-8')).hexdigest()
         if cache:
             fn = os.path.join(cache, fn)
         else:

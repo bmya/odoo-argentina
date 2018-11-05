@@ -4,11 +4,10 @@
 ##############################################################################
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
-# import base64
 try:
-    from pyafipws.padron import PadronAFIP
+    from pysimplesoap.client import SoapFault
 except ImportError:
-    PadronAFIP = None
+    SoapFault = None
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -30,15 +29,16 @@ class ResPartner(models.Model):
     gross_income_jurisdiction_ids = fields.Many2many(
         'res.country.state',
         string='Gross Income Jurisdictions',
-        help='The state of the company is cosidered the main jurisdiction'
+        help='The state of the company is cosidered the main jurisdiction',
     )
     start_date = fields.Date(
-        'Start-up Date'
+        'Start-up Date',
     )
     afip_responsability_type_id = fields.Many2one(
         'afip.responsability.type',
         'AFIP Responsability Type',
         auto_join=True,
+        index=True,
     )
     # campos desde
     # http://www.sistemasagiles.com.ar/trac/wiki/PadronContribuyentesAFIP
@@ -153,13 +153,23 @@ class ResPartner(models.Model):
                     'Not confirmed certificate found on database'))
             company = certificate.alias_id.company_id
 
-        padron = company.get_connection('ws_sr_padron_a4').connect()
+        # consultamos a5 ya que extiende a4 y tiene validez de constancia
+        # padron = company.get_connection('ws_sr_padron_a4').connect()
+        padron = company.get_connection('ws_sr_padron_a5').connect()
+        error_msg = _(
+            'No pudimos actualizar desde padron afip al partner %s (%s).\n'
+            'Recomendamos verificar manualmente en la página de AFIP.\n'
+            'Obtuvimos este error: %s')
         try:
             padron.Consultar(cuit)
-        except Exception:
-            raise UserError(_(
-                'This cuit %s of the partner %s not exists in afip') % (
-                cuit, self.name))
+        except SoapFault as e:
+            raise UserError(error_msg % (self.name, cuit, e.faultstring))
+        except Exception as e:
+            raise UserError(error_msg % (self.name, cuit, e))
+
+        if not padron.denominacion or padron.denominacion == ', ':
+            raise UserError(error_msg % (
+                self.name, cuit, 'La afip no devolvió nombre'))
 
         # porque imp_iva activo puede ser S o AC
         imp_iva = padron.imp_iva
@@ -205,16 +215,18 @@ class ResPartner(models.Model):
                 "must set it manually")
 
         if padron.provincia:
+            # depending on the database, caba can have one of this codes
+            caba_codes = ['C', 'CABA', 'ABA']
             # if not localidad then it should be CABA.
             if not padron.localidad:
                 state = self.env['res.country.state'].search([
-                    ('code', '=', 'ABA'),
+                    ('code', 'in', caba_codes),
                     ('country_id.code', '=', 'AR')], limit=1)
             # If localidad cant be caba
             else:
                 state = self.env['res.country.state'].search([
                     ('name', 'ilike', padron.provincia),
-                    ('code', '!=', 'ABA'),
+                    ('code', 'not in', caba_codes),
                     ('country_id.code', '=', 'AR')], limit=1)
             if state:
                 vals['state_id'] = state.id

@@ -5,7 +5,8 @@
 from .pyi25 import PyI25
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
-from io import StringIO as StringIO
+import base64
+from io import BytesIO
 import logging
 import sys
 import traceback
@@ -71,11 +72,11 @@ class AccountInvoice(models.Model):
     )
 
     afip_barcode = fields.Char(
-        compute='_get_barcode',
+        compute='_compute_barcode',
         string='AFIP Barcode'
     )
     afip_barcode_img = fields.Binary(
-        compute='_get_barcode',
+        compute='_compute_barcode',
         string='AFIP Barcode Image'
     )
     afip_message = fields.Text(
@@ -103,36 +104,41 @@ class AccountInvoice(models.Model):
     )
     validation_type = fields.Char(
         'Validation Type',
-        compute='get_validation_type',
+        compute='_compute_validation_type',
     )
 
-    @api.one
-    def get_validation_type(self):
-        # for compatibility with account_invoice_operation, if module installed
-        # and there are operations we return no_validation so no validate
-        # button is displayed
-        if self._fields.get('operation_ids') and self.operation_ids:
-            self.validation_type = 'no_validation'
-        # if invoice has cae then me dont validate it against afip
-        elif self.journal_id.afip_ws and not self.afip_auth_code:
-            self.validation_type = self.env[
-                'res.company']._get_environment_type()
+    @api.depends('journal_id', 'afip_auth_code')
+    def _compute_validation_type(self):
+        for rec in self:
+            if rec.journal_id.afip_ws and not rec.afip_auth_code:
+                validation_type = self.env[
+                    'res.company']._get_environment_type()
+                # if we are on homologation env and we dont have certificates
+                # we validate only locally
+                if validation_type == 'homologation':
+                    try:
+                        rec.company_id.get_key_and_certificate(validation_type)
+                    except Exception:
+                        validation_type = False
+                rec.validation_type = validation_type
 
-    @api.one
+    @api.multi
     @api.depends('afip_auth_code')
-    def _get_barcode(self):
-        barcode = False
-        if self.afip_auth_code:
-            cae_due = ''.join(
-                [c for c in str(self.afip_auth_code_due or '') if c.isdigit()])
-            barcode = ''.join(
-                [str(self.company_id.cuit),
-                    "%02d" % int(self.document_type_id.code),
-                    "%04d" % int(self.journal_id.point_of_sale_number),
-                    str(self.afip_auth_code), cae_due])
-            barcode = barcode + self.verification_digit_modulo10(barcode)
-        self.afip_barcode = barcode
-        self.afip_barcode_img = self._make_image_I25(barcode)
+    def _compute_barcode(self):
+        for rec in self:
+            barcode = False
+            if rec.afip_auth_code:
+                cae_due = ''.join(
+                    [c for c in str(
+                        rec.afip_auth_code_due or '') if c.isdigit()])
+                barcode = ''.join(
+                    [str(rec.company_id.cuit),
+                        "%02d" % int(rec.document_type_id.code),
+                        "%04d" % int(rec.journal_id.point_of_sale_number),
+                        str(rec.afip_auth_code), cae_due])
+                barcode = barcode + rec.verification_digit_modulo10(barcode)
+            rec.afip_barcode = barcode
+            rec.afip_barcode_img = rec._make_image_I25(barcode)
 
     @api.model
     def _make_image_I25(self, barcode):
@@ -141,15 +147,14 @@ class AccountInvoice(models.Model):
         if barcode:
             # create the helper:
             pyi25 = PyI25()
-            output = StringIO()
+            output = BytesIO()
             # call the helper:
             bars = ''.join([c for c in barcode if c.isdigit()])
             if not bars:
                 bars = "00"
             pyi25.GenerarImagen(bars, output, extension="PNG")
             # get the result and encode it for openerp binary field:
-            image = output.getvalue()
-            image = output.getvalue().encode("base64")
+            image = base64.b64encode(output.getvalue())
             output.close()
         return image
 
@@ -168,7 +173,7 @@ class AccountInvoice(models.Model):
         # Step 4: sum the results of step 2 and 3
         etapa4 = etapa2 + etapa3
         # Step 5: the minimun value that summed to step 4 is a multiple of 10
-        digito = 10 - (etapa4 - (int(etapa4 / 10) * 10))
+        digito = 10 - (etapa4 - (int(etapa4 // 10) * 10))
         if digito == 10:
             digito = 0
         return str(digito)
@@ -331,7 +336,7 @@ print "Observaciones:", wscdc.Obs
             if not cbte_fch:
                 raise UserError(_('Invoice Date is required!'))
             cbte_fch = cbte_fch.replace("-", "")
-            imp_total = str("%.2f" % abs(inv.amount_total))
+            imp_total = str("%.2f" % inv.amount_total)
 
             _logger.info('Constatando Comprobante en afip')
 
@@ -444,22 +449,22 @@ print "Observaciones:", wscdc.Obs
                 fecha_venc_pago = fecha_serv_desde = fecha_serv_hasta = None
 
             # # invoice amount totals:
-            imp_total = str("%.2f" % abs(inv.amount_total))
+            imp_total = str("%.2f" % inv.amount_total)
             # ImpTotConc es el iva no gravado
-            imp_tot_conc = str("%.2f" % abs(inv.vat_untaxed_base_amount))
+            imp_tot_conc = str("%.2f" % inv.vat_untaxed_base_amount)
             # tal vez haya una mejor forma, la idea es que para facturas c
             # no se pasa iva. Probamos hacer que vat_taxable_amount
             # incorpore a los imp cod 0, pero en ese caso termina reportando
             # iva y no lo queremos
             if inv.document_type_id.document_letter_id.name == 'C':
-                imp_neto = str("%.2f" % abs(inv.amount_untaxed))
+                imp_neto = str("%.2f" % inv.amount_untaxed)
             else:
-                imp_neto = str("%.2f" % abs(inv.vat_taxable_amount))
-            imp_iva = str("%.2f" % abs(inv.vat_amount))
+                imp_neto = str("%.2f" % inv.vat_taxable_amount)
+            imp_iva = str("%.2f" % inv.vat_amount)
             # se usaba para wsca..
-            # imp_subtotal = str("%.2f" % abs(inv.amount_untaxed))
-            imp_trib = str("%.2f" % abs(inv.other_taxes_amount))
-            imp_op_ex = str("%.2f" % abs(inv.vat_exempt_base_amount))
+            # imp_subtotal = str("%.2f" % inv.amount_untaxed)
+            imp_trib = str("%.2f" % inv.other_taxes_amount)
+            imp_op_ex = str("%.2f" % inv.vat_exempt_base_amount)
             moneda_id = inv.currency_id.afip_code
             moneda_ctz = inv.currency_rate
 
@@ -587,9 +592,9 @@ print "Observaciones:", wscdc.Obs
                         'Adding VAT %s' % vat.tax_id.tax_group_id.name)
                     ws.AgregarIva(
                         vat.tax_id.tax_group_id.afip_code,
-                        "%.2f" % abs(vat.base),
+                        "%.2f" % vat.base,
                         # "%.2f" % abs(vat.base_amount),
-                        "%.2f" % abs(vat.amount),
+                        "%.2f" % vat.amount,
                     )
 
                 for tax in inv.not_vat_tax_ids:
@@ -598,17 +603,18 @@ print "Observaciones:", wscdc.Obs
                     ws.AgregarTributo(
                         tax.tax_id.tax_group_id.application_code,
                         tax.tax_id.tax_group_id.name,
-                        "%.2f" % abs(tax.base),
+                        "%.2f" % tax.base,
                         # "%.2f" % abs(tax.base_amount),
                         # TODO pasar la alicuota
                         # como no tenemos la alicuota pasamos cero, en v9
                         # podremos pasar la alicuota
                         0,
-                        "%.2f" % abs(tax.amount),
+                        "%.2f" % tax.amount,
                     )
 
             CbteAsoc = inv.get_related_invoices_data()
-            if CbteAsoc:
+            # bono no tiene implementado AgregarCmpAsoc
+            if CbteAsoc and afip_ws != 'wsbfe':
                 ws.AgregarCmpAsoc(
                     CbteAsoc.document_type_id.code,
                     CbteAsoc.point_of_sale_number,

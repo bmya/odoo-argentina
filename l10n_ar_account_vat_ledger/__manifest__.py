@@ -1,6 +1,6 @@
 {
     "name": "Argentinian VAT Ledger Management",
-    'version': '9.0.1.7.0',
+    'version': '11.0.11.0.0',
     'category': 'Localization/Argentina',
     'sequence': 14,
     'author': 'ADHOC SA,Moldeo Interactive,Odoo Community Association (OCA)',
@@ -10,15 +10,14 @@
         # TODO we should try to get this report with another tool, not aeroo
         "report_aeroo",
         "l10n_ar_account",
-        "report_custom_filename",
-        # "date_range",
-        # "account_fiscal_year",
     ],
     'external_dependencies': {
     },
     "data": [
-        'account_vat_report_view.xml',
+        'data/l10n_ar_account_vat_ledger_data.xml',
+        'views/account_vat_report_views.xml',
         'report/account_vat_ledger_report.xml',
+        'wizards/res_config_settings_views.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
     ],
@@ -26,7 +25,7 @@
     ],
     'images': [
     ],
-    'installable': False,
+    'installable': True,
     'auto_install': True,
     'application': False,
 }

@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class ResPartner(models.Model):
@@ -28,14 +28,25 @@ class ResPartner(models.Model):
     # )
     main_id_number = fields.Char(
         compute='_compute_main_id_number',
-        inverse='_set_main_id_number',
+        inverse='_inverse_main_id_number',
         store=True,
         string='Main Identification Number',
     )
     main_id_category_id = fields.Many2one(
         string="Main Identification Category",
         comodel_name='res.partner.id_category',
+        index=True,
+        auto_join=True,
     )
+
+    @api.constrains('main_id_number', 'main_id_category_id')
+    def _check_change_cuit(self):
+        for rec in self.filtered('invoice_ids'):
+            raise ValidationError(_(
+                'Can not change identification number/category of partner'
+                ' that already have invoices. In this case please create a '
+                ' new partner'
+            ))
 
     @api.multi
     def cuit_required(self):
@@ -104,8 +115,12 @@ class ResPartner(models.Model):
                 partner.main_id_number = id_numbers[0].name
 
     @api.multi
-    def _set_main_id_number(self):
-        for partner in self:
+    def _inverse_main_id_number(self):
+        to_unlink = self.env['res.partner.id_number']
+        # we use sudo because user may have CRUD rights on partner
+        # but no to partner id model because partner id module
+        # only adds CRUD to "Manage contacts" group
+        for partner in self.sudo():
             name = partner.main_id_number
             category_id = partner.main_id_category_id
             if category_id:
@@ -114,7 +129,7 @@ class ResPartner(models.Model):
                 if partner_id_numbers and name:
                     partner_id_numbers[0].name = name
                 elif partner_id_numbers and not name:
-                    partner_id_numbers[0].unlink()
+                    to_unlink |= partner_id_numbers[0]
                 # we only create new record if name has a value
                 elif name:
                     partner_id_numbers.create({
@@ -122,9 +137,10 @@ class ResPartner(models.Model):
                         'category_id': category_id.id,
                         'name': name
                     })
+        to_unlink.unlink()
 
     @api.model
-    def name_search(self, name, args=None, operator='ilike', limit=100):
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
         """
         we search by id, if we found we return this results, else we do
         default search
@@ -135,7 +151,7 @@ class ResPartner(models.Model):
         # no contiene algo del nombre
         if name and operator in ('ilike', 'like', '=', '=like', '=ilike'):
             recs = self.search(
-                [('id_numbers', operator, name)] + args, limit=limit)
+                [('id_numbers.name', operator, name)] + args, limit=limit)
             if recs:
                 return recs.name_get()
         return super(ResPartner, self).name_search(
