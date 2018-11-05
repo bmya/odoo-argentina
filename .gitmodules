@@ -1,0 +1,24 @@
+[submodule "oca-partner-contact"]
+	path = oca-partner-contact
+	url = git@github.com:bmya/partner-contact.git
+	branch = 11.0_bmya
+[submodule "ingadhoc-miscellaneous"]
+	path = ingadhoc-miscellaneous
+	url = https://github.com/ingadhoc/miscellaneous.git
+	branch = 11.0
+[submodule "oca-reporting-engine"]
+	path = oca-reporting-engine
+	url = git@github.com:bmya/reporting-engine-1.git
+	branch = 11.0
+[submodule "ingadhoc-account-financial-tools"]
+	path = ingadhoc-account-financial-tools
+	url = https://github.com/ingadhoc/account-financial-tools.git
+	branch = 11.0
+[submodule "ingadhoc-account-payment"]
+	path = ingadhoc-account-payment
+	url = https://github.com/ingadhoc/account-payment.git
+	branch = 11.0
+[submodule "ingadhoc-aeroo-reports"]
+	path = ingadhoc-aeroo-reports
+	url = https://github.com/ingadhoc/aeroo_reports.git
+	branch = 11.0
