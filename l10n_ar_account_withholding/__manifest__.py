@@ -24,7 +24,7 @@
     'category': 'Accounting & Finance',
     'data': [
         'wizard/res_config_settings_views.xml',
-        'reports/certificado_de_retencion_report.xml',
+        # 'reports/certificado_de_retencion_report.xml',
         'views/account_payment_group_view.xml',
         'views/afip_tabla_ganancias_escala_view.xml',
         'views/afip_tabla_ganancias_alicuotasymontos_view.xml',
@@ -46,7 +46,7 @@
         # para no sumar dependencinas. Se deberia requerir porque el reporte
         # usa las lineas
         # 'l10n_ar_aeroo_base',
-        'report_aeroo',
+        # 'report_aeroo',
     ],
     'external_dependencies': {
         'python': ['pyafipws'],
