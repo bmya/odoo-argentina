@@ -12,12 +12,12 @@
 	branch = 11.0
 [submodule "ingadhoc-account-financial-tools"]
 	path = ingadhoc-account-financial-tools
-	url = https://github.com/ingadhoc/account-financial-tools.git
-	branch = 11.0
+	url = git@github.com:bmya/account-financial-tools.git
+	branch = 11.0_ar
 [submodule "ingadhoc-account-payment"]
 	path = ingadhoc-account-payment
-	url = https://github.com/ingadhoc/account-payment.git
-	branch = 11.0
+	url = git@github.com:bmya/account-payment.git
+	branch = 11.0_ar
 [submodule "ingadhoc-aeroo-reports"]
 	path = ingadhoc-aeroo-reports
 	url = https://github.com/ingadhoc/aeroo_reports.git
